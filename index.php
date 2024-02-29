@@ -15,7 +15,7 @@ const PRICE_PATTERN = '/(?<=\s)(\d+)(?=\₽)/';
 /**
  * парсим сумму товара из строки
  */
-function parcePrice(string $bill): array
+function parsePrice(string $bill): array
 {
     preg_match_all(PRICE_PATTERN, $bill, $matches, PREG_SET_ORDER);
 
@@ -35,7 +35,7 @@ function checkDiscountType(string $type): bool
  */
 function calculateDiscount(string $bill, float $discount): float
 {
-    $prices = parcePrice($bill);
+    $prices = parsePrice($bill);
     $totalPrice = array_sum(array_column($prices, 0));
 
     return $discount / $totalPrice * 100;
@@ -56,7 +56,7 @@ function calculateNewPrice(float $price, float $discount): float
  */
 function getNewProductLine(string $product, float $discount): string
 {
-    $price = parcePrice($product)[0][0] ?? null;
+    $price = parsePrice($product)[0][0] ?? null;
     //Если в чеке есть строка без цены (например комментарий какой нибудь), то оставляем её без изменений
     if ($price === null) {
         return $product . PRODUCT_SEPARATOR;
@@ -64,7 +64,7 @@ function getNewProductLine(string $product, float $discount): string
 
     $newPrice = calculateNewPrice($price, $discount);
     $newPriceRounded = round($newPrice, PRICE_PRECISION);
-    $newProductLine = preg_replace (PRICE_PATTERN, $newPriceRounded, $product);
+    $newProductLine = preg_replace(PRICE_PATTERN, $newPriceRounded, $product);
 
     return $newProductLine . PRODUCT_SEPARATOR;
 }
@@ -128,3 +128,14 @@ var_dump(getDiscount(50, 'percent',
     Платье 1шт. 1000₽
     Юбка 1шт. 1000₽"
 ));
+
+/* Итог
+ string(92) "Кроссовки: 1942.86₽,
+    Шорты: 971.43₽,
+    Футболка: 485.71₽.
+"
+string(83) "Шорты 1шт. 500₽
+    Платье 1шт. 500₽
+    Юбка 1шт. 500₽
+"
+ */
